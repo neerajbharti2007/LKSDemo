@@ -6,9 +6,11 @@
 package com.lks.demo.dao;
 
 import com.lks.demo.model.Comic;
+import com.lks.demo.model.SearchComic;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,18 +40,22 @@ public class ComicDaoImpl extends JdbcDaoSupport implements ComicDao {
     private static final String DELETE_SQL = "DELETE comic  where id = ?";
     private static final String SELECT_SQL = "select id,title,hero,year,authorid  from comic";
     private static final String SELECT_BY_ID_SQL = "select id,title,hero,year,authorid  from comic where id=?";
-
+    private static final String FIND_COMIC_SQL = "SELECT comic.id,title,hero,year,authorid  from comic, author where comic.authorid=author.id" +
+                                                " AND (( lower(hero)  =? ) OR ('0' = ?))" ;
+                                                
+ 
+    
     @Override
-    public Comic addNewComic(Comic comic) {
-        int i = this.getJdbcTemplate().update(
+    public Optional<Comic> addNewComic(Comic comic) {
+        this.getJdbcTemplate().update(
                 INSERT_SQL,
                 new Object[]{comic.getComicId(), comic.getTitle(), comic.getHero(), comic.getYear(), comic.getAuthorId()});
         return getComicById(comic.getComicId());
     }
 
     @Override
-    public Comic updateComic(Comic comic) {
-        int i = this.getJdbcTemplate().update(
+    public Optional<Comic> updateComic(Comic comic) {
+        this.getJdbcTemplate().update(
                 UPDATE_SQL,
                 new Object[]{comic.getTitle(), comic.getHero(), comic.getYear(), comic.getAuthorId(), comic.getComicId()
 
@@ -68,45 +74,49 @@ public class ComicDaoImpl extends JdbcDaoSupport implements ComicDao {
 
     @Override
     public List<Comic> getAllComics() {// Maps a SQL result to a Java object
-        RowMapper<Comic> mapper = new RowMapper<Comic>() {
-
-            @Override
-            public Comic mapRow(ResultSet rs, int i) throws SQLException {
-                Comic comic = new Comic();
-                comic.setAuthorId(rs.getInt("authorid"));
-                comic.setComicId(rs.getInt("id"));
-                comic.setTitle(rs.getString("title"));
-                comic.setHero(rs.getString("hero"));
-                comic.setYear(rs.getInt("year"));
-
-                return comic;
-                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-        };
-
-        return this.getJdbcTemplate().query(SELECT_SQL, mapper);
-
+       return this.getJdbcTemplate().query(
+                SELECT_SQL,
+                (rs, rowNum) ->
+                        new Comic(
+                           rs.getInt("id"),
+                                rs.getString("title"),
+                                rs.getInt("year"),
+                                rs.getString("hero"),
+                                rs.getInt("authorid")
+                        )
+        );
     }
 
     @Override
-    public Comic getComicById(int comicId) {
-        RowMapper<Comic> mapper = new RowMapper<Comic>() {
-
-            @Override
-            public Comic mapRow(ResultSet rs, int i) throws SQLException {
-                Comic comic = new Comic();
-                comic.setAuthorId(rs.getInt("authorid"));
-                comic.setComicId(rs.getInt("id"));
-                comic.setTitle(rs.getString("title"));
-                comic.setHero(rs.getString("hero"));
-                comic.setYear(rs.getInt("year"));
-
-                return comic;
-                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-        };
-
-        return (Comic) this.getJdbcTemplate().queryForObject(SELECT_BY_ID_SQL, mapper, new Object[]{comicId});
+    public Optional<Comic> getComicById(int comicId) {
+    return this.getJdbcTemplate().queryForObject(
+                SELECT_BY_ID_SQL,
+                new Object[]{comicId},
+                (rs, rowNum) ->
+                        Optional.of(new Comic(
+                                rs.getInt("id"),
+                                rs.getString("title"),
+                                rs.getInt("year"),
+                                rs.getString("hero"),
+                                rs.getInt("authorid")
+                        ))
+        );
     }
 
+    @Override
+    public List<Comic> findAllComics(SearchComic comic) {
+        return this.getJdbcTemplate().query(
+                FIND_COMIC_SQL,
+                new Object[]{comic.getHero().toLowerCase(),comic.getHero().toLowerCase()},
+                (rs, rowNum) ->
+                        new Comic(
+                                rs.getInt("id"),
+                                rs.getString("title"),
+                                rs.getInt("year"),
+                                rs.getString("hero"),
+                                rs.getInt("authorid")
+                        )
+        );
+ 
+    }
 }

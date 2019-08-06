@@ -8,6 +8,7 @@ package com.lks.demo.service;
 
 import com.lks.demo.dao.ComicDao;
 import com.lks.demo.model.Comic;
+import com.lks.demo.model.SearchComic;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,12 +25,12 @@ public class ComicServiceImpl implements ComicService{
     ComicDao comicDao; 
     
     @Override
-    public Comic addNewComic(Comic comic) {
+    public Optional<Comic> addNewComic(Comic comic) {
         return comicDao.addNewComic(comic);
     }
 
     @Override
-    public Comic updateComic(Comic comic) {
+    public Optional<Comic> updateComic(Comic comic) {
         return comicDao.updateComic(comic);
     }
 
@@ -44,8 +45,13 @@ public class ComicServiceImpl implements ComicService{
     }
 
     @Override
-    public Comic getComicById(int comicId) {
+    public Optional<Comic> getComicById(int comicId) {
         return comicDao.getComicById(comicId);
+    }
+
+    @Override
+    public List<Comic> findAllComics(SearchComic comic) {
+        return  comicDao.findAllComics(comic);
     }
     
 }

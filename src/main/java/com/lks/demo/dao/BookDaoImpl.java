@@ -6,9 +6,11 @@
 package com.lks.demo.dao;
 
 import com.lks.demo.model.Book;
+import com.lks.demo.model.SearchBook;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
@@ -40,24 +42,22 @@ public class BookDaoImpl extends JdbcDaoSupport implements BookDao {
     private static final String DELETE_SQL = "DELETE book  where id = ?";
     private static final String SELECT_SQL = "select id,title,genre,year,authorid  from book";
     private static final String SELECT_BY_ID_SQL = "select id, title,genre,year,authorid  from book where id=?";
-    private static final String AUTHOR_EXIST_SQL = "SELECT count(*) from author where id=?";
-    private static final String BOOK_EXIST_SQL = "SELECT count(*) from book where id=?";
+    private static final String FIND_BOOK_SQL = "SELECT book.id,title,genre,year,authorid  FROM book, author where book.authorid=author.id " +
+                                                " AND (( lower(author.name)  =? ) OR ('0' = ?))" +
+                                                " AND (( lower(book.year)  =? ) OR ('0' = ?))";
+    
 
     @Override
-    public Book addNewBook(Book book) throws Exception {
-        if(!isAuthorExist(book.getAuthorId())){
-            throw new Exception("Author doesn't exist" );
-        }
-        
-        int i = this.getJdbcTemplate().update(
+    public Optional<Book> addNewBook(Book book) throws Exception {
+        this.getJdbcTemplate().update(
                 INSERT_SQL,
                 new Object[]{book.getBookId(), book.getTitle(), book.getGenre(), book.getYear(), book.getAuthorId()});
         return getBookById(book.getBookId());
     }
 
     @Override
-    public Book updateBook(Book book) {
-        int i = this.getJdbcTemplate().update(
+    public Optional<Book> updateBook(Book book) {
+        this.getJdbcTemplate().update(
                 UPDATE_SQL,
                 new Object[]{book.getTitle(), book.getGenre(), book.getYear(), book.getAuthorId(), book.getBookId()
 
@@ -83,66 +83,52 @@ public class BookDaoImpl extends JdbcDaoSupport implements BookDao {
     @Override
     public List<Book> getAllBooks() {
 // Maps a SQL result to a Java object
-        RowMapper<Book> mapper = new RowMapper<Book>() {
-
-            @Override
-            public Book mapRow(ResultSet rs, int i) throws SQLException {
-                Book book = new Book();
-                book.setAuthorId(rs.getInt("authorid"));
-                book.setBookId(rs.getInt("id"));
-                book.setTitle(rs.getString("title"));
-                book.setGenre(rs.getString("genre"));
-                book.setYear(rs.getInt("year"));
-
-                return book;
-                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-        };
-
-        return this.getJdbcTemplate().query(SELECT_SQL, mapper);
+        return this.getJdbcTemplate().query(
+                SELECT_SQL,
+                (rs, rowNum) ->
+                        new Book(
+                                rs.getInt("id"),
+                                rs.getString("title"),
+                                rs.getString("genre"),
+                                rs.getInt("year"),
+                                rs.getInt("authorid")
+                        )
+        );
 
     }
 
     @Override
-    public Book getBookById(int bookId) throws Exception {
+    public Optional<Book> getBookById(int bookId) throws Exception {
 
-         if(!isBookExist(bookId)){
-            throw new Exception("Book doesn't exist" );
-        }
-        RowMapper<Book> mapper = new RowMapper<Book>() {
-
-            @Override
-            public Book mapRow(ResultSet rs, int i) throws SQLException {
-                Book book = new Book();
-                book.setAuthorId(rs.getInt("authorid"));
-                book.setBookId(rs.getInt("id"));
-                book.setTitle(rs.getString("title"));
-                book.setGenre(rs.getString("genre"));
-                book.setYear(rs.getInt("year"));
-
-                return book;
-                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-        };
-
-        return (Book) this.getJdbcTemplate().queryForObject(SELECT_BY_ID_SQL, mapper, new Object[]{bookId});
+        return this.getJdbcTemplate().queryForObject(
+                SELECT_BY_ID_SQL,
+                new Object[]{bookId},
+                (rs, rowNum) ->
+                        Optional.of(new Book(
+                                rs.getInt("id"),
+                                rs.getString("title"),
+                                rs.getString("genre"),
+                                rs.getInt("year"),
+                                rs.getInt("authorid")
+                        ))
+        );
     }
 
-    private boolean isAuthorExist(int authorId) {
-        boolean result = false;
-        int count = this.getJdbcTemplate().queryForObject(AUTHOR_EXIST_SQL, new Object[]{authorId}, Integer.class);
-        if (count > 0) {
-            result = true;
-        }
-        return result;
+    @Override
+    public List<Book> findAllBooks(SearchBook book) {
+        return this.getJdbcTemplate().query(
+                FIND_BOOK_SQL,
+                new Object[]{book.getAuthorName().toLowerCase(),book.getAuthorName().toLowerCase(),book.getYear(),book.getYear()},
+                (rs, rowNum) ->
+                        new Book(
+                                rs.getInt("id"),
+                                rs.getString("title"),
+                                rs.getString("genre"),
+                                rs.getInt("year"),
+                                rs.getInt("authorid")
+                        )
+        );
+        
     }
-    
-    private boolean isBookExist(int authorId) {
-        boolean result = false;
-        int count = this.getJdbcTemplate().queryForObject(AUTHOR_EXIST_SQL, new Object[]{authorId}, Integer.class);
-        if (count > 0) {
-            result = true;
-        }
-        return result;
-    }
+
 }

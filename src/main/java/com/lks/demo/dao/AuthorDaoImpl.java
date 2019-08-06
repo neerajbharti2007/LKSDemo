@@ -36,6 +36,7 @@ public class AuthorDaoImpl extends JdbcDaoSupport implements AuthorDao{
     private static final String DELETE_SQL = "DELETE author  where id = ?";
     private static final String SELECT_SQL = "select id, name  from author";
     private static final String SELECT_BY_ID_SQL = "select id, name  from author where id=?";
+    private static final String AUTHOR_EXIST_SQL = "SELECT count(*) from author where id=?";
         
     @Autowired
     public AuthorDaoImpl(DataSource dataSource) {
@@ -111,5 +112,14 @@ public class AuthorDaoImpl extends JdbcDaoSupport implements AuthorDao{
 return (Author)this.getJdbcTemplate().queryForObject(SELECT_BY_ID_SQL,mapper, new Object[] { authorId });
     }
     
+@Override
+    public boolean isAuthorExist(int authorId) {
+        boolean result = false;
+        int count = this.getJdbcTemplate().queryForObject(AUTHOR_EXIST_SQL, new Object[]{authorId}, Integer.class);
+        if (count > 0) {
+            result = true;
+        }
+        return result;
+    }    
     
 }

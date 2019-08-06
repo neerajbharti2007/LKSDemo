@@ -47,5 +47,10 @@ public class AuthorServiceImpl implements AuthorService{
     public Author getAuthorById(int authorId) {
       return authorDao.getAuthorById(authorId);
     }
+
+    @Override
+    public boolean isAuthorExist(int authorId) {
+         return authorDao.isAuthorExist(authorId);
+    }
     
 }

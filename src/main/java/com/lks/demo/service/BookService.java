@@ -7,17 +7,21 @@
 package com.lks.demo.service;
 
 import com.lks.demo.model.Book;
+import com.lks.demo.model.SearchBook;
 import java.util.List;
+import java.util.Optional;
 
 /**
  *
  * @author Neeraj
  */
 public interface BookService {
-    public Book addNewBook(Book book) throws Exception;
-    public Book updateBook(Book book);
+    public Optional<Book> addNewBook(Book book) throws Exception;
+    public Optional<Book> updateBook(Book book);
     public void deleteBook(int bookId);
     public List<Book> getAllBooks();
-    public Book getBookById(int bookId) throws Exception;
+    public Optional<Book> getBookById(int bookId) throws Exception;
+    public List<Book> findAllBooks(SearchBook book);
+    
    
 }

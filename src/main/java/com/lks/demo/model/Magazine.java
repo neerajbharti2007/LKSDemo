@@ -18,6 +18,19 @@ public class Magazine {
     private int year;
     private int authorId;
 
+    public Magazine(int magazineId, String title, String type, int year, int authorId) {
+        this.magazineId = magazineId;
+        this.title = title;
+        this.type = type;
+        this.year = year;
+        this.authorId = authorId;
+    }
+
+    public Magazine() {
+       
+    }
+
+    
     public int getAuthorId() {
         return authorId;
     }

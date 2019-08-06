@@ -19,6 +19,7 @@ public interface AuthorService {
     public void deleteAuthor(int authorId);
     public List<Author> getAllAuthors();
     public Author getAuthorById(int authorId) throws Exception;
+    public boolean isAuthorExist(int authorId);        
    
     
 }

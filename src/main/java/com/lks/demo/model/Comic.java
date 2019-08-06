@@ -17,6 +17,19 @@ public class Comic {
     private String hero;
     private int authorId;
 
+    public Comic(int comicId, String title, int year, String hero, int authorId) {
+        this.comicId = comicId;
+        this.title = title;
+        this.year = year;
+        this.hero = hero;
+        this.authorId = authorId;
+    }
+
+    public Comic() {
+        
+    }
+
+    
     public int getAuthorId() {
         return authorId;
     }

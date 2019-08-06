@@ -18,6 +18,20 @@ public class Book {
     private int year;
     private int authorId;
 
+    public Book(int bookId, String title, String genre, int year, int authorId) {
+        this.bookId = bookId;
+        this.title = title;
+        this.genre = genre;
+        this.year = year;
+        this.authorId = authorId;
+    }
+
+    public Book() {
+       
+    }
+
+    
+
     public int getAuthorId() {
         return authorId;
     }

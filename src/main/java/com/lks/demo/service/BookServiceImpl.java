@@ -7,6 +7,7 @@ package com.lks.demo.service;
 
 import com.lks.demo.dao.BookDao;
 import com.lks.demo.model.Book;
+import com.lks.demo.model.SearchBook;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +24,12 @@ public class BookServiceImpl implements BookService {
     BookDao bookDao;
 
     @Override
-    public Book addNewBook(Book book) throws Exception{
+    public Optional<Book> addNewBook(Book book) throws Exception{
         return bookDao.addNewBook(book);
     }
 
     @Override
-    public Book updateBook(Book book) {
+    public Optional<Book> updateBook(Book book) {
         return bookDao.updateBook(book);
     }
 
@@ -43,8 +44,15 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Book getBookById(int bookId) throws Exception{
+    public Optional<Book> getBookById(int bookId) throws Exception{
         return bookDao.getBookById(bookId);
     }
+
+    @Override
+    public List<Book> findAllBooks(SearchBook book) {
+        return bookDao.findAllBooks(book);
+    }
+    
+    
 
 }

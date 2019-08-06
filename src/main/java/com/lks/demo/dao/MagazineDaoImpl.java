@@ -3,20 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.lks.demo.dao;
 
 import com.lks.demo.model.Magazine;
-import com.lks.demo.model.Magazine;
-import com.lks.demo.model.Magazine;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.lks.demo.model.SearchGenre;
 import java.util.List;
 import java.util.Optional;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
@@ -30,8 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @Transactional
 @Qualifier("MagazineDao")
-public class MagazineDaoImpl extends  JdbcDaoSupport implements MagazineDao{
-    
+public class MagazineDaoImpl extends JdbcDaoSupport implements MagazineDao {
+
     @Autowired
     public MagazineDaoImpl(DataSource dataSource) {
         this.setDataSource(dataSource);
@@ -40,21 +35,25 @@ public class MagazineDaoImpl extends  JdbcDaoSupport implements MagazineDao{
     private static final String INSERT_SQL = "INSERT INTO magazine  (id,title,type,year,authorid) VALUES (?,?,?,?,?)";
     private static final String UPDATE_SQL = "UPDATE magazine set title=? ,type=? , year = ?, authorid=? where id = ?";
     private static final String DELETE_SQL = "DELETE magazine  where id = ?";
-    private static final String SELECT_SQL = "select id,title,type,year,authorid  from magazine";
-    private static final String SELECT_BY_ID_SQL = "select id,title,type,year,authorid  from magazine where id=?";
-
+    private static final String SELECT_SQL = "SELECT id,title,type,year,authorid  from magazine";
+    private static final String SELECT_BY_ID_SQL = "SELECT id,title,type,year,authorid  from magazine where id=?";
+    private static final String FIND_GENRE_SQL = "SELECT magazine.id,title,type,year,authorid  FROM magazine, author where magazine.authorid=author.id" +
+                                                " AND (( lower(author.name)  =? ) OR ('0' = ?)) " +
+                                                " AND (( lower(magazine.type)  =? ) OR ('0' = ?)) " +
+                                                " AND (( year  =? ) OR ('0' = ?))";
+    
+    
     @Override
-    public Magazine addNewMagazine(Magazine magazine) {
-        int i = this.getJdbcTemplate().update(
+    public Optional<Magazine> addNewMagazine(Magazine magazine) {
+        this.getJdbcTemplate().update(
                 INSERT_SQL,
                 new Object[]{magazine.getMagazineId(), magazine.getTitle(), magazine.getType(), magazine.getYear(), magazine.getAuthorId()});
         return getMagazineById(magazine.getMagazineId());
     }
 
-
     @Override
-    public Magazine updateMagazine(Magazine magazine) {
-        int i = this.getJdbcTemplate().update(
+    public Optional<Magazine> updateMagazine(Magazine magazine) {
+        this.getJdbcTemplate().update(
                 UPDATE_SQL,
                 new Object[]{magazine.getTitle(), magazine.getType(), magazine.getYear(), magazine.getAuthorId(), magazine.getMagazineId()
 
@@ -62,6 +61,7 @@ public class MagazineDaoImpl extends  JdbcDaoSupport implements MagazineDao{
 
         return getMagazineById(magazine.getMagazineId());
     }
+
     @Override
     public void deleteMagazine(int magazineId) {
         this.getJdbcTemplate().update(
@@ -70,49 +70,51 @@ public class MagazineDaoImpl extends  JdbcDaoSupport implements MagazineDao{
                 });
     }
 
-
     @Override
     public List<Magazine> getAllMagazines() {// Maps a SQL result to a Java object
-        RowMapper<Magazine> mapper = new RowMapper<Magazine>() {
+       return this.getJdbcTemplate().query(
+                SELECT_SQL,
+                (rs, rowNum) ->
+                        new Magazine(
+                                rs.getInt("id"),
+                                rs.getString("title"),
+                                rs.getString("type"),
+                                rs.getInt("year"),
+                                rs.getInt("authorid")
 
-            @Override
-            public Magazine mapRow(ResultSet rs, int i) throws SQLException {
-                Magazine magazine = new Magazine();
-                magazine.setAuthorId(rs.getInt("authorid"));
-                magazine.setMagazineId(rs.getInt("id"));
-                magazine.setTitle(rs.getString("title"));
-                magazine.setType(rs.getString("type"));
-                magazine.setYear(rs.getInt("year"));
-
-                return magazine;
-                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-        };
-
-        return this.getJdbcTemplate().query(SELECT_SQL, mapper);
-
+                        )
+        );
     }
-
 
     @Override
-    public Magazine getMagazineById(int magazineId) {
-        RowMapper<Magazine> mapper = new RowMapper<Magazine>() {
-
-            @Override
-            public Magazine mapRow(ResultSet rs, int i) throws SQLException {
-                Magazine magazine = new Magazine();
-                magazine.setAuthorId(rs.getInt("authorid"));
-                magazine.setMagazineId(rs.getInt("id"));
-                magazine.setTitle(rs.getString("title"));
-                magazine.setType(rs.getString("type"));
-                magazine.setYear(rs.getInt("year"));
-
-                return magazine;
-                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-        };
-
-        return (Magazine) this.getJdbcTemplate().queryForObject(SELECT_BY_ID_SQL, mapper, new Object[]{magazineId});
+    public Optional<Magazine> getMagazineById(int magazineId) {
+        return this.getJdbcTemplate().queryForObject(
+                SELECT_BY_ID_SQL,
+                new Object[]{magazineId},
+                (rs, rowNum) ->
+                        Optional.of(new Magazine(
+                                rs.getInt("id"),
+                                rs.getString("title"),
+                                rs.getString("type"),
+                                rs.getInt("year"),
+                                rs.getInt("authorid")
+                        ))
+        );
     }
 
+    @Override
+    public List<Magazine> findAllGenre(SearchGenre genre) {
+        return this.getJdbcTemplate().query(
+                FIND_GENRE_SQL,
+                new Object[]{genre.getAuthorName().toLowerCase(),genre.getAuthorName().toLowerCase(),genre.getType().toLowerCase(),genre.getType().toLowerCase(),genre.getYear(),genre.getYear()},
+                (rs, rowNum) ->
+                        new Magazine(
+                                rs.getInt("id"),
+                                rs.getString("title"),
+                                rs.getString("type"),
+                                rs.getInt("year"),
+                                rs.getInt("authorid")
+                        )
+        );
+    }
 }

@@ -19,5 +19,5 @@ public interface AuthorDao {
     public void deleteAuthor(int authorId);
     public List<Author> getAllAuthors();
     public Author getAuthorById(int authorId);
-        
+    public boolean isAuthorExist(int authorId);        
 }

@@ -7,6 +7,7 @@ package com.lks.demo.service;
 
 import com.lks.demo.dao.MagazineDao;
 import com.lks.demo.model.Magazine;
+import com.lks.demo.model.SearchGenre;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +24,12 @@ public class MagazineServiceImpl implements MagazineService {
     MagazineDao magazineDao;
 
     @Override
-    public Magazine addNewMagazine(Magazine magazine) {
+    public Optional<Magazine> addNewMagazine(Magazine magazine) {
         return magazineDao.addNewMagazine(magazine);
     }
 
     @Override
-    public Magazine updateMagazine(Magazine magazine) {
+    public Optional<Magazine> updateMagazine(Magazine magazine) {
         return magazineDao.updateMagazine(magazine);
     }
 
@@ -43,8 +44,13 @@ public class MagazineServiceImpl implements MagazineService {
     }
 
     @Override
-    public Magazine getMagazineById(int magazineId) {
+    public Optional<Magazine> getMagazineById(int magazineId) {
         return magazineDao.getMagazineById(magazineId);
+    }
+
+    @Override
+    public List<Magazine> findAllGenre(SearchGenre genre) {
+        return magazineDao.findAllGenre(genre);
     }
 
 }

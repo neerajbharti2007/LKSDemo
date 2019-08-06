@@ -7,6 +7,7 @@
 package com.lks.demo.dao;
 
 import com.lks.demo.model.Magazine;
+import com.lks.demo.model.SearchGenre;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,10 +16,11 @@ import java.util.Optional;
  * @author Neeraj
  */
 public interface MagazineDao {
-    public Magazine addNewMagazine(Magazine magazine);
-    public Magazine updateMagazine(Magazine magazine);
+    public Optional <Magazine> addNewMagazine(Magazine magazine);
+    public Optional <Magazine> updateMagazine(Magazine magazine);
     public void deleteMagazine(int magazineId);
     public List<Magazine> getAllMagazines();
-    public Magazine getMagazineById(int magazineId);
+    public Optional <Magazine> getMagazineById(int magazineId);
+    public List<Magazine> findAllGenre(SearchGenre genre);
    
 }

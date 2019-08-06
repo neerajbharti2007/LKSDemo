@@ -7,17 +7,20 @@
 package com.lks.demo.dao;
 
 import com.lks.demo.model.Comic;
+import com.lks.demo.model.SearchComic;
 import java.util.List;
+import java.util.Optional;
 
 /**
  *
  * @author Neeraj
  */
 public interface ComicDao {
-     public Comic addNewComic(Comic comic);
-    public Comic updateComic(Comic comic);
+    public Optional<Comic> addNewComic(Comic comic);
+    public Optional<Comic> updateComic(Comic comic);
     public void deleteComic(int comicId);
     public List<Comic> getAllComics();
-    public Comic getComicById(int comicId);
+    public Optional<Comic> getComicById(int comicId);
+    public List<Comic> findAllComics(SearchComic comic);
    
 }
